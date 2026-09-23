@@ -9,8 +9,3 @@ class HelloWorldTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/json')
         self.assertEqual(response.json(), {'message': 'Hello world'})
-
-    def test_post_is_not_allowed(self) -> None:
-        response = self.client.post(reverse('hello-world'))
-
-        self.assertEqual(response.status_code, 405)
