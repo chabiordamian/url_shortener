@@ -1,7 +1,8 @@
 from django.urls import path
 
-from .views import hello_world
+from .views import resolve_url, shorten_url
 
 urlpatterns = [
-    path('', hello_world, name='hello-world'),
+    path('api/urls/', shorten_url, name='shorten-url'),
+    path('shrt/<str:short_code>/', resolve_url, name='resolve-url'),
 ]
