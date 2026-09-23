@@ -5,7 +5,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN python -m pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt requirements-dev.txt ./
+RUN python -m pip install --no-cache-dir -r requirements-dev.txt
 
-CMD ["python", "--version"]
+COPY . .
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

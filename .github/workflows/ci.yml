@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Django tests and mypy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build image
+        run: docker compose build backend
+
+      - name: Check Django configuration
+        run: docker compose run --rm --no-deps -T backend python manage.py check
+
+      - name: Run tests
+        run: docker compose run --rm --no-deps -T backend python manage.py test
+
+      - name: Check types
+        run: docker compose run --rm --no-deps -T backend python -m mypy
