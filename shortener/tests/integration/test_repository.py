@@ -1,7 +1,6 @@
 from django.test import TestCase
 
 from shortener.django_repository import DjangoShortURLRepository
-from shortener.repository import ShortCodeAlreadyExists
 
 EXAMPLE_URL = "http://example.com/very-very/long/url/even-longer"
 

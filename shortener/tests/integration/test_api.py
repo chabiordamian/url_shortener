@@ -64,25 +64,24 @@ class ResolveURLAPITests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
-
-def test_returns_503_when_code_generation_attempts_are_exhausted(self) -> None:
-    ShortURL.objects.create(
-        url="https://existing.example.com",
-        short_code="Ab12Cd34",
-    )
-
-    with patch(
-        "shortener.services.generate_short_code",
-        return_value="Ab12Cd34",
-    ):
-        response = self.client.post(
-            "/api/urls/",
-            data=json.dumps({"url": EXAMPLE_URL}),
-            content_type="application/json",
+    def test_returns_503_when_code_generation_attempts_are_exhausted(self) -> None:
+        ShortURL.objects.create(
+            url="https://existing.example.com",
+            short_code="Ab12Cd34",
         )
 
-    self.assertEqual(response.status_code, 503)
-    self.assertEqual(
-        response.json(),
-        {"detail": "Could not generate a short URL."},
-    )
+        with patch(
+            "shortener.services.generate_short_code",
+            return_value="Ab12Cd34",
+        ):
+            response = self.client.post(
+                "/api/urls/",
+                data=json.dumps({"url": EXAMPLE_URL}),
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(
+            response.json(),
+            {"detail": "Could not generate a short URL."},
+        )
