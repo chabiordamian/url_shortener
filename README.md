@@ -1,10 +1,12 @@
-# URL shortener
+# URL Shortener
 
-A small Django REST Framework API for shortening URLs and retrieving the original address.
+Small Django REST Framework API for shortening URLs.
+
+The project was kept intentionally simple. It uses SQLite, generates random 8-character codes and stores the mapping between a short code and the original URL.
 
 ## Run
 
-Requires Docker with Compose. From the project directory:
+Docker with Compose is required.
 
 ```sh
 docker compose build backend
@@ -12,37 +14,62 @@ docker compose run --rm backend python manage.py migrate
 docker compose up -d backend
 ```
 
+The API will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
 ## API
 
-Create a short URL:
+### Create a short URL
 
 ```sh
-curl -X POST http://localhost:8000/api/urls/ \
+curl -v http://127.0.0.1:8000/api/urls/ \
   -H 'Content-Type: application/json' \
   -d '{"url":"http://example.com/very-very/long/url/even-longer"}'
 ```
 
-Returns HTTP 201 with `{"short_url":"http://localhost:8000/shrt/<code>/"}`.
-Use the returned address to retrieve the original URL:
+Example response:
 
-```sh
-curl 'http://localhost:8000/shrt/<code>/'
+```json
+{
+  "short_url":"http://127.0.0.1:8000/shrt/PzLplsI9/"
+}
 ```
 
-Returns HTTP 200 with `{"url":"http://example.com/very-very/long/url/even-longer"}`.
-Invalid input returns 400; an unknown code returns 404.
+### Resolve a short URL
 
-## Checks
+```sh
+curl http://127.0.0.1:8000/shrt/PzLplsI9/
+```
+
+Example response:
+
+```json
+{
+  "url": "http://example.com/very-very/long/url/even-longer"
+}
+```
+
+Unknown codes return `404`. Invalid input returns `400`.
+
+## Tests and type checks
 
 ```sh
 docker compose run --rm backend python manage.py test
 docker compose run --rm backend python -m mypy
 ```
 
-## Assumptions
+## Notes
 
-- HTTP and HTTPS URLs only, up to 2048 characters. Resolving returns JSON, not a redirect.
-- Shortening the same URL again creates a separate code. Target pages are not fetched.
-- Codes contain eight random letters and digits. The database enforces uniqueness; a collision currently returns 500. Retries are omitted to keep the exercise small.
-- SQLite data lives in `db.sqlite3` in the mounted project directory and survives container recreation.
-- This is a local development setup: debug mode, Django's development server and a development secret key. Optionally set `DJANGO_SECRET_KEY` in your shell or a local `.env` file; Compose passes it to Django. These files are ignored by Git and Docker.
+* Only HTTP and HTTPS URLs are accepted.
+* Original URLs can be up to 2048 characters.
+* Short codes contain eight random letters and digits.
+* `short_code` has a unique constraint in the database.
+* If a generated code already exists, another code is generated. Creation is retried up to three times.
+* Shortening the same URL multiple times creates separate short codes.
+* Resolving a short URL returns JSON instead of performing an HTTP redirect.
+* SQLite is used to keep the project easy to run locally.
+
+This is a development setup using Django's development server and debug configuration.
