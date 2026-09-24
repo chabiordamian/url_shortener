@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from .django_repository import DjangoShortURLRepository
 from .serializers import ShortenURLSerializer
 from .services import (
+    ShortCodeGenerationError,
     ShortURLNotFound,
     create_short_url,
     resolve_short_url,
@@ -19,19 +20,34 @@ from .services import (
 def shorten_url(request: Request) -> Response:
     serializer = ShortenURLSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    created = create_short_url(serializer.validated_data['url'], DjangoShortURLRepository())
-    path = reverse('resolve-url', kwargs={'short_code': created.short_code})
+
+    try:
+        created = create_short_url(
+            serializer.validated_data['url'],
+            DjangoShortURLRepository(),
+        )
+    except ShortCodeGenerationError:
+        return Response(
+            {'detail': 'Could not generate a short URL.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    path = reverse(
+        'resolve-url',
+        kwargs={'short_code': created.short_code},
+    )
+
     return Response(
         {'short_url': request.build_absolute_uri(path)},
         status=status.HTTP_201_CREATED,
     )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @renderer_classes([JSONRenderer])
 def resolve_url(request: Request, short_code: str) -> Response:
     try:
         original_url = resolve_short_url(short_code, DjangoShortURLRepository())
     except ShortURLNotFound:
-        return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
-    return Response({'url': original_url})
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+    return Response({"url": original_url})
