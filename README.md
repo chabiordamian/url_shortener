@@ -25,7 +25,7 @@ http://127.0.0.1:8000
 ### Create a short URL
 
 ```sh
-curl -v http://127.0.0.1:8000/api/urls/ \
+curl http://127.0.0.1:8000/api/urls/ \
   -H 'Content-Type: application/json' \
   -d '{"url":"http://example.com/very-very/long/url/even-longer"}'
 ```
@@ -67,7 +67,7 @@ docker compose run --rm backend python -m mypy
 * Original URLs can be up to 2048 characters.
 * Short codes contain eight random letters and digits.
 * `short_code` has a unique constraint in the database.
-* If a generated code already exists, another code is generated. Creation is retried up to three times.
+* If a generated code already exists, another code is generated. Code generation is attempted up to three times.
 * Shortening the same URL multiple times creates separate short codes.
 * Resolving a short URL returns JSON instead of performing an HTTP redirect.
 * SQLite is used to keep the project easy to run locally.
