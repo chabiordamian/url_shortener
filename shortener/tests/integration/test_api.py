@@ -36,18 +36,6 @@ class ShortenURLAPITests(TestCase):
                 self.assertIn('url', response.json())
         self.assertEqual(ShortURL.objects.count(), 0)
 
-    def test_exhausted_collisions_return_503(self) -> None:
-        ShortURL.objects.create(url=EXAMPLE_URL, short_code='Ab12Cd34')
-        with patch('shortener.services.generate_short_code', return_value='Ab12Cd34'):
-            response = self.client.post(
-                '/api/urls/', data=json.dumps({'url': EXAMPLE_URL}),
-                content_type='application/json',
-            )
-
-        self.assertEqual(response.status_code, 503)
-        self.assertIn('detail', response.json())
-        self.assertEqual(ShortURL.objects.count(), 1)
-
 
 class ResolveURLAPITests(TestCase):
     def test_returns_original_url_as_json_without_redirect(self) -> None:

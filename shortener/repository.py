@@ -1,13 +1,9 @@
 from typing import Protocol
 
 
-class ShortCodeAlreadyExists(Exception):
-    """The short code is already assigned to a URL."""
-
-
 class ShortURLRepository(Protocol):
-    def insert(self, *, url: str, short_code: str) -> None:
-        """Save a new mapping, raising ShortCodeAlreadyExists for a duplicate code."""
+    def add(self, *, url: str, short_code: str) -> None:
+        """Save a new mapping. Database failures propagate to the caller."""
         ...
 
     def get_original_url(self, short_code: str) -> str | None:

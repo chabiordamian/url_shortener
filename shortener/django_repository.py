@@ -1,21 +1,10 @@
-from django.db import connection
-
 from .models import ShortURL
-from .repository import ShortCodeAlreadyExists, ShortURLRepository
+from .repository import ShortURLRepository
 
 
 class DjangoShortURLRepository(ShortURLRepository):
-    def insert(self, *, url: str, short_code: str) -> None:
-        table = connection.ops.quote_name(ShortURL._meta.db_table)
-        with connection.cursor() as cursor:
-            cursor.execute(
-                f'INSERT INTO {table} ("url", "short_code") VALUES (%s, %s) '
-                'ON CONFLICT ("short_code") DO NOTHING RETURNING "id"',
-                [url, short_code],
-            )
-            inserted = cursor.fetchone() is not None
-        if not inserted:
-            raise ShortCodeAlreadyExists(short_code)
+    def add(self, *, url: str, short_code: str) -> None:
+        ShortURL.objects.create(url=url, short_code=short_code)
 
     def get_original_url(self, short_code: str) -> str | None:
         try:
@@ -23,4 +12,3 @@ class DjangoShortURLRepository(ShortURLRepository):
         except ShortURL.DoesNotExist:
             return None
         return stored.url
-
