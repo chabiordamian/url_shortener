@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from .codes import generate_short_code
-from .repository import ShortCodeAlreadyExists, ShortURLRepository
+from .repository import ShortURLRepository
 from .validation import validate_original_url
 
 
@@ -27,12 +27,8 @@ def create_short_url(url: str, repository: ShortURLRepository) -> CreatedShortUR
     for _ in range(MAX_CODE_GENERATION_ATTEMPTS):
         short_code = generate_short_code()
 
-        try:
-            repository.add(url=url, short_code=short_code)
-        except ShortCodeAlreadyExists:
-            continue
-
-        return CreatedShortURL(short_code=short_code)
+        if repository.try_add(url=url, short_code=short_code):
+            return CreatedShortURL(short_code=short_code)
 
     raise ShortCodeGenerationError
 
@@ -41,4 +37,5 @@ def resolve_short_url(short_code: str, repository: ShortURLRepository) -> str:
     original_url = repository.get_original_url(short_code)
     if original_url is None:
         raise ShortURLNotFound(short_code)
+
     return original_url
